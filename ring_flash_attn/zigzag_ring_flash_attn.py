@@ -15,6 +15,7 @@ def zigzag_ring_flash_attn_forward(
     window_size=(-1, -1),
     alibi_slopes=None,
     deterministic=False,
+    softcap=0.0
 ):
     assert causal == True, "zigzag ring is meaningless for causal=False"
     comm = RingComm(process_group)
@@ -37,6 +38,7 @@ def zigzag_ring_flash_attn_forward(
             window_size=window_size,
             alibi_slopes=alibi_slopes,
             return_softmax=True and dropout_p > 0,
+            softcap=softcap
         )
         return block_out, block_lse
 
@@ -88,6 +90,7 @@ def zigzag_ring_flash_attn_backward(
     window_size=(-1, -1),
     alibi_slopes=None,
     deterministic=False,
+    softcap=0.0
 ):
     assert causal == True, "zigzag ring is meaningless for causal=False"
     kv_comm = RingComm(process_group)
@@ -123,10 +126,11 @@ def zigzag_ring_flash_attn_backward(
             dv_buffer[:, :seqlen_kv],
             dropout_p,
             softmax_scale,
-            causal,
-            window_size,
-            alibi_slopes,
-            deterministic,
+            causal=causal,
+            window_size=window_size,
+            alibi_slopes=alibi_slopes,
+            deterministic=deterministic,
+            softcap=softcap,
             rng_state=None,
         )
 
